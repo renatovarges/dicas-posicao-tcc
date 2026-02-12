@@ -1,0 +1,19 @@
+# Virtual Environment
+.venv/
+
+# Python cache
+__pycache__/
+
+# Generated HTML files
+*.html
+
+# Debug/temp files
+debug_*.txt
+club_dump.txt
+missing_teams.txt
+
+# Old project backup
+dicas-posicao-tcc-novo-main/
+
+# Streamlit secrets (local only)
+.streamlit/secrets.toml
