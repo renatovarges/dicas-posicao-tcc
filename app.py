@@ -3,12 +3,6 @@ import pandas as pd
 import os
 import utils
 import base64
-try:
-    import screenshot_server
-    HAS_SCREENSHOT = True
-except Exception as e:
-    HAS_SCREENSHOT = False
-    print(f"Screenshot module not available: {e}")
 
 # Configuração da Página
 st.set_page_config(layout="wide", page_title="Dicas do Cartola", page_icon="🎩")
@@ -903,8 +897,17 @@ with tab_preview:
         <html>
         <head>
             <meta charset="UTF-8">
-            <style>{render_custom_css()}</style>
-            <!-- REVERT TO HTML-TO-IMAGE (More efficient for large DOMs if configured right) -->
+            <style>
+                {render_custom_css()}
+                /* FORÇAR body a ter largura mínima para evitar corte */
+                html, body {{
+                    margin: 0;
+                    padding: 0;
+                    min-width: 1200px;
+                    width: 1200px;
+                    overflow-x: hidden;
+                }}
+            </style>
         </head>
         <body>
     <div id="ui-controls" style="position:fixed; top:10px; right:10px; z-index:9999; display:flex; flex-direction:column; gap:8px; align-items:flex-end;">
@@ -912,9 +915,8 @@ with tab_preview:
             <div style="display:flex; align-items:center; gap:10px;">
                 <span style="color:white; font-weight:bold; font-family:sans-serif; font-size:14px;">Qualidade:</span>
                 <select id="resSelect" style="padding:5px; border-radius:4px; border:none; font-weight:bold; cursor:pointer;">
-                    <option value="2.0">2.0x (2400px - Padrão)</option>
-                    <option value="3.0">3.0x (3600px - Print A3)</option>
-                    <option value="4.0">4.0x (4800px - Máxima)</option>
+                    <option value="3.0" selected>3.0x (3600px - Padrão)</option>
+                    <option value="4.0">4.0x (4800px - Print A3)</option>
                     <option value="6.0">6.0x (~7200px - 600 DPI)</option>
                 </select>
             </div>
@@ -963,82 +965,99 @@ with tab_preview:
             <!-- SCRIPTS LOADED AT END OF BODY -->
             <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
             <script>
-                // Make functions global
                 window.downloadHighRes = function() {{
                     var node = document.getElementById('capture');
+                    var uiControls = document.getElementById('ui-controls');
+                    var btn = document.querySelector('button[onclick="window.downloadHighRes()"');
+                    
+                    // 1. ESCONDER CONTROLES durante captura
+                    uiControls.style.display = 'none';
+                    
+                    // 2. Feedback visual
                     document.body.style.cursor = 'wait';
                     
-                    
-                    // FIXED DIMENSIONS: The container is 1200px.
-                    // Instead of trust scrollWidth (which changes with zoom), we force it.
-                    // We add a horizontal buffer (40px) to prevent right-edge cuts.
-                    // FIXED DIMENSIONS: The container is 1200px.
-                    // Instead of trust scrollWidth (which changes with zoom), we force it.
-                    // We add a horizontal buffer (40px) to prevent right-edge cuts.
-                    var fixedWidth = 1200;
-                    var w = fixedWidth + 40; 
-                    
-                    // Add buffer to height to prevent footer cuts at different zoom levels
-                    var h = Math.max(node.scrollHeight, node.offsetHeight) + 150;
-                    
-                    // GET USER SELECTION FROM HTML
+                    // 3. GET USER SELECTION
                     var sel = document.getElementById('resSelect');
                     var targetScale = parseFloat(sel.value);
                     
-                    // Cap scale to browser limits (approx 30k pixels height for modern browsers)
+                    // 4. FORÇAR largura exata do container
+                    var CONTAINER_WIDTH = 1200;
+                    
+                    // 5. Medir altura REAL do conteúdo (sem min-height)
+                    var originalMinHeight = node.style.minHeight;
+                    node.style.minHeight = '0';
+                    
+                    // Forçar reflow
+                    void node.offsetHeight;
+                    
+                    var realHeight = node.scrollHeight;
+                    
+                    // Restaurar min-height
+                    node.style.minHeight = originalMinHeight;
+                    
+                    console.log('Capture: ' + CONTAINER_WIDTH + 'x' + realHeight + ' at ' + targetScale + 'x');
+                    
+                    // 6. Cap scale para limites do browser
                     var MAX_PIXELS = 30000;
-                    if (h * targetScale > MAX_PIXELS) {{
-                        var safeScale = MAX_PIXELS / h;
+                    if (realHeight * targetScale > MAX_PIXELS) {{
+                        var safeScale = MAX_PIXELS / realHeight;
                         if (safeScale < targetScale) {{
                             targetScale = safeScale;
-                            alert("⚠️ ALERTA DE LIMITE:\\n\\nA lista é muito grande (" + h + "px de altura).\\nPara 600 DPI, ela teria " + (h*6) + "px, o que trava o navegador.\\n\\nA escala foi ajustada automaticamente para " + targetScale.toFixed(2) + "x (Máximo Seguro).");
-                            sel.value = "2.0"; // Visual reset
+                            alert('⚠️ Escala ajustada para ' + targetScale.toFixed(2) + 'x (limite do navegador).');
                         }}
                     }}
                     
-                    console.log("Starting capture at scale: " + targetScale);
-                    
+                    // 7. CAPTURAR com html-to-image
                     htmlToImage.toBlob(node, {{
-                        backgroundColor: '#ffffff',
-                        width: w,
-                        height: h,
+                        backgroundColor: null,
+                        width: CONTAINER_WIDTH,
+                        height: realHeight,
                         pixelRatio: targetScale,
                         style: {{
                             transform: 'none',
                             visibility: 'visible',
                             maxHeight: 'none',
                             maxWidth: 'none',
-                            height: 'auto',
                             overflow: 'visible',
-                            // FORCE WIDTH and CENTER to avoid cut
-                            width: fixedWidth + 'px',
-                            marginLeft: '20px', // Center in the w+40 canvas
-                            marginRight: '20px'
+                            width: CONTAINER_WIDTH + 'px',
+                            height: 'auto',
+                            minHeight: '0',
+                            margin: '0',
+                            padding: '40px',
+                            paddingBottom: '0'
                         }}
                     }})
                     .then(function(blob) {{
+                        // RESTAURAR controles
+                        uiControls.style.display = 'flex';
+                        document.body.style.cursor = 'default';
+                        
                         if (!blob) {{
-                            throw new Error("Blob vazio gerado.");
+                            throw new Error('Blob vazio gerado.');
                         }}
+                        
                         var url = URL.createObjectURL(blob);
                         var link = document.createElement('a');
-                        link.download = 'Dicas_Rodada_TCC_v' + targetScale.toFixed(1) + 'x.png';
+                        link.download = 'Dicas_Rodada_TCC_' + targetScale.toFixed(1) + 'x.png';
                         link.href = url;
                         link.click();
                         
                         setTimeout(function() {{ URL.revokeObjectURL(url); }}, 100);
-                        document.body.style.cursor = 'default';
                         
-                        // Show success feedback
-                        var btn = document.querySelector('button[onclick="window.downloadHighRes()"]');
-                        var originalText = btn.innerText;
-                        btn.innerText = "✅ SUCESSO!";
-                        setTimeout(() => btn.innerText = originalText, 2000);
+                        // Feedback de sucesso
+                        if (btn) {{
+                            var originalText = btn.innerHTML;
+                            btn.innerHTML = '✅ SUCESSO!';
+                            setTimeout(function() {{ btn.innerHTML = originalText; }}, 2000);
+                        }}
                     }})
                     .catch(function(error) {{
-                        console.error('Capture failed:', error);
-                        alert('❌ ERRO ao gerar imagem ' + targetScale + 'x.\\n\\nO navegador não aguentou essa resolução. Tente selecionar uma qualidade MENOR no menu (ex: 1.5x ou 2.0x).');
+                        // RESTAURAR controles mesmo em erro
+                        uiControls.style.display = 'flex';
                         document.body.style.cursor = 'default';
+                        
+                        console.error('Capture failed:', error);
+                        alert('❌ ERRO ao gerar imagem ' + targetScale + 'x.\\n\\nTente uma qualidade menor.');
                     }});
                 }};
             </script>
@@ -1063,44 +1082,11 @@ with tab_preview:
             href = f'<a href="data:text/html;base64,{b64}" download="Dicas_Rodada_{rodada_atual}.html" style="text-decoration:none;"><button style="background-color:transparent; border:1px solid #ccc; padding:8px 16px; border-radius:4px; cursor:pointer;">📄 Baixar HTML (Debug)</button></a>'
             st.markdown(href, unsafe_allow_html=True) 
         
-        # Opção 2: Screenshot Server-Side (Selenium + Chrome Headless)
+        # Opção 2: Download via html-to-image (Client-Side - Alta Qualidade)
         with c_dl_2:
             st.write("### 📸 Alta Qualidade (Recomendado)")
-            st.caption("Usa Selenium + Chrome Headless para gerar PNG perfeito, sem cortes.")
-            
-            if not HAS_SCREENSHOT:
-                st.error("❌ Módulo de screenshot não disponível. Verifique os logs.")
-            else:
-                # Selector de Qualidade
-                qualidade = st.select_slider(
-                    "Qualidade:", 
-                    options=[2.0, 3.0, 4.0], 
-                    value=3.0, 
-                    format_func=lambda x: f"{x}x ({int(1200*x)}px largura)"
-                )
-                
-                if st.button("🚀 Gerar PNG (Alta Definição)", type="primary"):
-                    with st.spinner("⏳ Renderizando via Selenium... (pode levar ~15s)"):
-                        try:
-                            png_bytes = screenshot_server.capture_html_to_png(
-                                st.session_state['preview_html'], 
-                                scale=qualidade
-                            )
-                            
-                            if png_bytes:
-                                size_mb = len(png_bytes) / (1024 * 1024)
-                                st.success(f"✅ Imagem gerada! ({size_mb:.1f} MB)")
-                                st.download_button(
-                                    label="⬇️ CLIQUE PARA BAIXAR PNG",
-                                    data=png_bytes,
-                                    file_name=f"Dicas_TCC_Rodada_{rodada_atual}_{qualidade}x.png",
-                                    mime="image/png"
-                                )
-                            else:
-                                st.error("Falha ao gerar imagem. Verifique os logs do terminal.")
-                        except Exception as e:
-                            st.error(f"❌ Erro ao gerar PNG: {str(e)}")
-                            st.info("💡 **Alternativa:** Use o botão '⬇️ BAIXAR PNG' dentro da visualização acima (pode ter cortes).")
+            st.caption("Use o botão '⬇️ BAIXAR PNG' dentro da visualização acima. Escolha a qualidade no menu ao lado.")
+            st.info("💡 **Os controles de qualidade e download ficam no canto superior direito da visualização.**")
                         
     else:
         st.warning("Clique em 'Gerar/Atualizar Visualização' para ver o resultado.")
