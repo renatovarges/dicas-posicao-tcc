@@ -80,6 +80,14 @@ st.markdown("""
         color: #000000 !important;
     }
     
+    /* SIDEBAR - Exceções: Drag-and-drop e inputs com fundo escuro */
+    [data-testid="stSidebar"] [data-testid="stFileUploadDropzone"],
+    [data-testid="stSidebar"] [data-testid="stFileUploadDropzone"] *,
+    [data-testid="stSidebar"] input[type="number"],
+    [data-testid="stSidebar"] .stNumberInput input {
+        color: #ffffff !important;
+    }
+    
     /* Lista suspensa (dropdown) - Forçar texto branco nas opções */
     [data-baseweb="select"] li,
     [data-baseweb="select"] li *,
