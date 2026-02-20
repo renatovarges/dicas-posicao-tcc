@@ -12,6 +12,26 @@ import base64
 # Configuração da Página
 st.set_page_config(layout="wide", page_title="Dicas do Cartola", page_icon="🎩")
 
+# CSS Global para corrigir contraste de textos
+st.markdown("""
+<style>
+    /* Forçar textos brancos em todo o app */
+    .stMarkdown, .stMarkdown p, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3 {
+        color: #ffffff !important;
+    }
+    
+    /* Labels de inputs */
+    label, .stTextInput label, .stSelectbox label, .stNumberInput label {
+        color: #ffffff !important;
+    }
+    
+    /* Textos de caption e helper */
+    .stCaption, small {
+        color: #cccccc !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 # --- PIN Protection ---
 def check_pin():
     """Verifica PIN se configurado nos Secrets."""
