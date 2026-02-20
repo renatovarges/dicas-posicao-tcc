@@ -83,6 +83,11 @@ st.markdown("""
     /* SIDEBAR - Exceções: Drag-and-drop e inputs com fundo escuro */
     [data-testid="stSidebar"] [data-testid="stFileUploadDropzone"],
     [data-testid="stSidebar"] [data-testid="stFileUploadDropzone"] *,
+    [data-testid="stSidebar"] [data-testid="stFileUploadDropzone"] span,
+    [data-testid="stSidebar"] [data-testid="stFileUploadDropzone"] p,
+    [data-testid="stSidebar"] [data-testid="stFileUploadDropzone"] small,
+    [data-testid="stSidebar"] .stFileUploader,
+    [data-testid="stSidebar"] .stFileUploader *,
     [data-testid="stSidebar"] input[type="number"],
     [data-testid="stSidebar"] .stNumberInput input {
         color: #ffffff !important;
