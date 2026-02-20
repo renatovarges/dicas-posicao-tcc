@@ -2,11 +2,6 @@ import streamlit as st
 import pandas as pd
 import os
 import utils
-try:
-    import screenshot_utils  # Módulo de Screenshot Server-Side (requer Playwright)
-    HAS_PLAYWRIGHT = True
-except Exception:
-    HAS_PLAYWRIGHT = False
 import base64
 
 # Configuração da Página
@@ -1062,35 +1057,11 @@ with tab_preview:
             href = f'<a href="data:text/html;base64,{b64}" download="Dicas_Rodada_{rodada_atual}.html" style="text-decoration:none;"><button style="background-color:transparent; border:1px solid #ccc; padding:8px 16px; border-radius:4px; cursor:pointer;">📄 Baixar HTML (Debug)</button></a>'
             st.markdown(href, unsafe_allow_html=True) 
         
-        # Opção 2: Server-Side Screenshot (Playwright/Chromium)
+        # Opção 2: Download via html-to-image (Client-Side)
         with c_dl_2:
             st.write("### 📸 Alta Qualidade (Recomendado)")
-            st.caption("Usa Playwright (Chromium) para gerar uma imagem perfeita, independente do zoom do seu navegador.")
-            
-            # Selector de Qualidade
-            qualidade = st.select_slider("Qualidade:", options=[2.0, 3.0, 4.0], value=3.0, format_func=lambda x: f"{x}x ({int(1200*x)}px largura)")
-            
-            if st.button("🚀 Gerar PNG (Alta Definição)", type="primary"):
-                with st.spinner("⏳ Renderizando via Playwright... (pode levar ~10s)"):
-                    try:
-                        png_bytes = screenshot_utils.capture_html_to_image(
-                            st.session_state['preview_html'], 
-                            scale=qualidade
-                        )
-                        
-                        if png_bytes:
-                            size_mb = len(png_bytes) / (1024 * 1024)
-                            st.success(f"✅ Imagem gerada! ({size_mb:.1f} MB)")
-                            st.download_button(
-                                label="⬇️ CLIQUE PARA BAIXAR PNG",
-                                data=png_bytes,
-                                file_name=f"Dicas_TCC_Rodada_{rodada_atual}_HQ.png",
-                                mime="image/png"
-                            )
-                        else:
-                            st.error("Falha ao gerar imagem. Verifique os logs do terminal.")
-                    except Exception as e:
-                        st.error(f"Erro: {e}")
+            st.caption("Use o botão '⬇️ BAIXAR PNG' dentro da visualização acima para gerar o PNG em alta resolução.")
+            st.info("💡 **Dica:** Você pode escolher a qualidade (2.0x até 6.0x) no menu dentro da visualização antes de baixar.")
                         
     else:
         st.warning("Clique em 'Gerar/Atualizar Visualização' para ver o resultado.")
