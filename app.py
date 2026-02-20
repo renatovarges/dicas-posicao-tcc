@@ -12,22 +12,62 @@ import base64
 # Configuração da Página
 st.set_page_config(layout="wide", page_title="Dicas do Cartola", page_icon="🎩")
 
-# CSS Global para corrigir contraste de textos
+# CSS Global para corrigir contraste de textos - VERSÃO ABRANGENTE
 st.markdown("""
 <style>
-    /* Forçar textos brancos em todo o app */
-    .stMarkdown, .stMarkdown p, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3 {
+    /* FORÇAR TODAS AS CORES DE TEXTO PARA BRANCO/CLARO */
+    
+    /* Textos gerais e markdown */
+    .stMarkdown, .stMarkdown *, .stMarkdown p, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3, .stMarkdown h4 {
         color: #ffffff !important;
     }
     
-    /* Labels de inputs */
-    label, .stTextInput label, .stSelectbox label, .stNumberInput label {
+    /* Headers e subheaders do Streamlit */
+    .stHeader, .stSubheader, h1, h2, h3, h4, h5, h6 {
+        color: #ffffff !important;
+    }
+    
+    /* Labels de TODOS os inputs */
+    label, label *, .stTextInput label, .stSelectbox label, .stNumberInput label, .stFileUploader label {
+        color: #ffffff !important;
+    }
+    
+    /* Textos de selectbox e dropdown */
+    .stSelectbox, .stSelectbox *, .stSelectbox div, .stSelectbox span {
+        color: #ffffff !important;
+    }
+    
+    /* Checkboxes */
+    .stCheckbox, .stCheckbox *, .stCheckbox label, .stCheckbox span {
         color: #ffffff !important;
     }
     
     /* Textos de caption e helper */
-    .stCaption, small {
+    .stCaption, .stCaption *, small, small * {
         color: #cccccc !important;
+    }
+    
+    /* Textos de divider e outros elementos */
+    .stDivider, .stText, .stText * {
+        color: #ffffff !important;
+    }
+    
+    /* Forçar cor em TODOS os spans e divs dentro do app */
+    [data-testid="stAppViewContainer"] span,
+    [data-testid="stAppViewContainer"] div,
+    [data-testid="stAppViewContainer"] p,
+    [data-testid="stAppViewContainer"] label {
+        color: #ffffff !important;
+    }
+    
+    /* Upload de arquivo */
+    .stFileUploader, .stFileUploader * {
+        color: #ffffff !important;
+    }
+    
+    /* Texto do drag and drop */
+    [data-testid="stFileUploadDropzone"], [data-testid="stFileUploadDropzone"] * {
+        color: #ffffff !important;
     }
 </style>
 """, unsafe_allow_html=True)
