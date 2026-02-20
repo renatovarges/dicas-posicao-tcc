@@ -69,6 +69,31 @@ st.markdown("""
     [data-testid="stFileUploadDropzone"], [data-testid="stFileUploadDropzone"] * {
         color: #ffffff !important;
     }
+    
+    /* SIDEBAR - Forçar texto PRETO para contraste com fundo branco */
+    [data-testid="stSidebar"], 
+    [data-testid="stSidebar"] *,
+    [data-testid="stSidebar"] label,
+    [data-testid="stSidebar"] span,
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] div {
+        color: #000000 !important;
+    }
+    
+    /* Lista suspensa (dropdown) - Forçar texto branco nas opções */
+    [data-baseweb="select"] li,
+    [data-baseweb="select"] li *,
+    [role="option"],
+    [role="option"] * {
+        color: #ffffff !important;
+        background-color: #262730 !important;
+    }
+    
+    /* Hover nas opções do dropdown */
+    [data-baseweb="select"] li:hover,
+    [role="option"]:hover {
+        background-color: #3d3d4d !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
